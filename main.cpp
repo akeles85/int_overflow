@@ -24,7 +24,6 @@ int integer_arithmetic()
 
     // result -2, overflow occured
     std::cout << x + y << std::endl;
-    
 
     // Addition of two negative integers
     x = LONG_MIN;
@@ -214,6 +213,46 @@ int integer128_arithmetic_safe()
     
 }
 
+//integer128_performance_test overflow: 57580
+//integer128_performance_test: 45757
+int integer128_performance_test()
+{
+    srand(time(0));
+
+    std::vector<__int128_t> number_arrays;
+
+    for(int i = 0; i < 10000000; i++)
+        number_arrays.push_back( rand() );
+    __int128_t result = 0;
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    for (int i = 0; i < number_arrays.size()-1; ++i) {
+        __int128_t tmp_result = 0;
+        bool overflow = __builtin_add_overflow(number_arrays[i], number_arrays[i+1], &tmp_result);
+
+        if( !overflow )
+        {
+            result += tmp_result;
+        }
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << "integer128_performance_test overflow: " << duration.count() << std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+
+    for (int i = 0; i < number_arrays.size()-1; ++i) {
+        __int128_t tmp_result = (number_arrays[i] + number_arrays[i+1]);
+        result += tmp_result;
+    }
+
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << "integer128_performance_test: " << duration.count() << std::endl;    
+
+}
 
 void double_arithmetic()
 {
@@ -284,6 +323,8 @@ int main()
     integer_performance_test();
 
     integer128_arithmetic_safe();
+
+    integer128_performance_test();
 
     //double_arithmetic();
 }
